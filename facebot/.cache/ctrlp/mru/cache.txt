@@ -1,0 +1,2 @@
+W:\fbbot_\facebot\__init__.py
+W:\fbbot_\fb_publish.py
