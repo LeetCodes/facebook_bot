@@ -20,7 +20,7 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 5.1; rv:31.0) Gecko/20100101 Firefox/31.0'
 
 HOME_URL = 'https://www.facebook.com/'
 LOGIN_URL = 'https://m.facebook.com/login.php'
-ACCESS_TOKEN_URL = 'https://developers.facebook.com/tools/explorer/{}/permissions?version=v2.1&__user={}&__a=1&__dyn=5U463-i3S2e4oK4pomXWo5O12wAxu&__req=2&__rev=1470714'
+ACCESS_TOKEN_URL = 'https://developers.facebook.com/tools/explorer/{}/permissions?version=v2.3&__user={}&__a=1&__dyn=5U463-i3S2e4oK4pomXWo5O12wAxu&__req=2&__rev=1470714'
 PING_URL = 'https://0-channel-proxy-06-ash2.facebook.com/active_ping?channel=p_{user_id}&partition=-2&clientid=5ae4ed0b&cb=el2p&cap=0&uid={user_id}&viewer_uid={user_id}&sticky_token=479&state=active'
 
 
