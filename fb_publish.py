@@ -68,17 +68,18 @@ def print_group(groups):
 def publish_to_fb_group(graph, group_list, token):
   article_pub_count = 1
   while(True):
-    print('=======================================================================================================\n')
-    token_time = get_access_token_expired_time(token)
-    print('token expired time = ', token_time)
-    if (token_time < (60 * 5 + 120)) :
-      token = get_access_token(username, password)
-      graph = get_fb_graph_instance(token)
-
+    print('===================================================================================================')
     if (len(group_list) == 0):
       print('facebook groups list has been empty\n')
       return 'GROUP_LIST_EMPTY'
     
+    token_time = get_access_token_expired_time(token)
+    print('token expired time = ', token_time)
+    if (token_time < (60 * 5 + 120)) :
+      print('token has been expired')
+      token = get_access_token(username, password)
+      graph = get_fb_graph_instance(token)
+
     group_id = group_list[0]['id']
     group_name = group_list[0]['name']
     group_list.pop(0)
@@ -96,9 +97,10 @@ def publish_to_fb_group(graph, group_list, token):
       # fb_post_id = graph.put_wall_post(message = message, attachment = {'link':art_link})
       fb_post_id = graph.put_wall_post(message = message, attachment = {'link':art_link}, profile_id = group_id)
       print('No.{}'.format(article_pub_count), current_time(), fb_post_id, ' publish_to ', group_id, group_name, art_link, title, 'group count = ', len(group_list))
+      article_pub_count += 1
     except Exception as exc:
-      print('publish_to_fb_group(), exception = ', exc)
-      print(current_time(), fb_post_id, ' publish error ', group_id, group_name, art_link)
+      print('publish_to_fb_group(), post exception = ', exc)
+      print(current_time(), fb_post_id, ' publish error ', group_id, group_name, art_link, 'group count = ', len(group_list))
       sleep_time(10)
       continue
       # sleep_time(60)
@@ -108,13 +110,11 @@ def publish_to_fb_group(graph, group_list, token):
       message = '按個讚加入粉絲團支持我們，給我們個鼓厲\n https://www.facebook.com/dobee01/'
       fb_post_id = graph.put_object(parent_object=fb_post_id['id'], connection_name='comments', message = message)
       print('No.{}'.format(article_pub_count), current_time(), fb_post_id, ' comment_to ', group_id, group_name, message)
-      article_pub_count += 1
-      rand_sleep_time(60 * 2, 60 * 5)
     except Exception as exc:
-      print('publish_to_fb_group(), exception = ', exc)
+      print('publish_to_fb_group(), comment exception = ', exc)
       print(current_time(), fb_post_id, 'comment error ', group_id, group_name, art_link)
-      sleep_time(60)
       pass
+    rand_sleep_time(60*2, 60*5)
 
 def publish_to_fb_group_comment(graph, group_list, token):
   article_pub_count = 0
@@ -156,7 +156,7 @@ def publish_to_fb_group_comment(graph, group_list, token):
 
 def welcome_login_fb(graph):
   me = graph.get_object('/me')
-  print(me['name'], 'welcome back\n')
+  print(me['name'], 'welcome back')
 
 def current_time():
   return '[' + (datetime.now()).strftime('%Y/%m/%d %H:%M:%S') + ']'
@@ -189,8 +189,10 @@ while(True):
 
 
   if (reget_group_list == True):
-    token = get_access_token(username, password)
-    graph = get_fb_graph_instance(token)
+    token_time = get_access_token_expired_time(token)
+    if (token_time <= 60):
+      token = get_access_token(username, password)
+      graph = get_fb_graph_instance(token)
     group_list = get_fb_random_groups(graph)
     reget_group_list = False
 

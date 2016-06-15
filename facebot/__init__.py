@@ -59,8 +59,8 @@ class Facebook:
                    '_js_reg_fb_gate': 'https%3A%2F%2Fwww.facebook.com%2F'
                    }
         # call login API with login form
-        # res = self.session.post(LOGIN_URL, data=datas, cookies=cookies2)
-        res = self.session.post(LOGIN_URL, data=datas)
+        res = self.session.post(LOGIN_URL, data=datas, cookies=cookies2)
+        # res = self.session.post(LOGIN_URL, data=datas)
         # get user id
         self.user_id = self._get_user_id(res.content)
         log.debug('user_id: %s', self.user_id)
