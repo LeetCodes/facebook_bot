@@ -66,9 +66,8 @@ def print_group(groups):
     print (g)
 
 def publish_to_fb_group(graph, group_list, token):
-  article_pub_count = 1
+  global article_pub_count
   while(True):
-    print('===================================================================================================')
     if (len(group_list) == 0):
       print('facebook groups list has been empty\n')
       return 'GROUP_LIST_EMPTY'
@@ -93,18 +92,17 @@ def publish_to_fb_group(graph, group_list, token):
       title      = get_article_title(art_link)
       message    = title + '\n' + art_link
       # res = graph.put_wall_post(message="test", attachment = {'link':'http://www.dobee01.com/p/3111/'}, profile_id = '277936995586328')
-      # fb_post_id = graph.put_object(parent_object=group_id, connection_name='feed', message = message, link=art_link)
+      fb_post_id = graph.put_object(parent_object=group_id, connection_name='feed', message = message, link=art_link)
       # fb_post_id = graph.put_wall_post(message = message, attachment = {'link':art_link})
-      fb_post_id = graph.put_wall_post(message = message, attachment = {'link':art_link}, profile_id = group_id)
+      # fb_post_id = graph.put_wall_post(message = message, attachment = {'link':art_link}, profile_id = group_id)
       print('No.{}'.format(article_pub_count), current_time(), fb_post_id, ' publish_to ', group_id, group_name, art_link, title, 'group count = ', len(group_list))
-      article_pub_count += 1
     except Exception as exc:
       print('publish_to_fb_group(), post exception = ', exc)
       print(current_time(), fb_post_id, ' publish error ', group_id, group_name, art_link, 'group count = ', len(group_list))
-      sleep_time(10)
+      sleep_time(5)
+
+    if (fb_post_id == 0):
       continue
-      # sleep_time(60)
-      # pass
 
     try:
       message = '按個讚加入粉絲團支持我們，給我們個鼓厲\n https://www.facebook.com/dobee01/'
@@ -114,7 +112,13 @@ def publish_to_fb_group(graph, group_list, token):
       print('publish_to_fb_group(), comment exception = ', exc)
       print(current_time(), fb_post_id, 'comment error ', group_id, group_name, art_link)
       pass
-    rand_sleep_time(60*2, 60*5)
+
+    if (article_pub_count % 10 == 0):
+      rand_sleep_time(60*23, 60*30)
+    else:
+      rand_sleep_time(12, 24)
+    article_pub_count += 1
+    print('===================================================================================================')
 
 def publish_to_fb_group_comment(graph, group_list, token):
   article_pub_count = 0
@@ -151,7 +155,7 @@ def publish_to_fb_group_comment(graph, group_list, token):
     except Exception as exc:
       print('publish_to_fb_group_comment(), exception = ', exc)
       print(current_time(), fb_post_id, ' publish error ', group_id, group_name, art_link, ' group count = ', len(group_list))
-      rand_sleep_time(0, 60)
+      sleep_time(5)
       pass
 
 def welcome_login_fb(graph):
@@ -169,17 +173,18 @@ def get_article_title(url):
 
 
 
-username = 'wangcandy700120@gmail.com'
+username = 'tittanchang@gmail.com'
 password = 'Novia0829'
 
 # 2650 ~ 3279
-post_id_start = 10910
-post_id_end   = 10930
+post_id_start = 10930
+post_id_end   = 10962
 
 reget_token = True
 reget_group_list = True
 
 status = 0
+article_pub_count = 1
 while(True):
   if (reget_token == True):
     token = get_access_token(username, password)
@@ -197,8 +202,8 @@ while(True):
     reget_group_list = False
 
   try:
-    # status = publish_to_fb_group(graph, group_list, token)
-    status = publish_to_fb_group_comment(graph, group_list, token)
+    status = publish_to_fb_group(graph, group_list, token)
+    # status = publish_to_fb_group_comment(graph, group_list, token)
   except Exception as exc:
     print(current_time(), 'main function Exception = ', exc, ', status =', status)
     pass
