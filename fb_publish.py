@@ -73,7 +73,7 @@ def publish_to_fb_group(graph, group_list, token):
       return 'GROUP_LIST_EMPTY'
     
     token_time = get_access_token_expired_time(token)
-    print('token expired time = ', token_time)
+    print(welcome_login_fb(graph), 'token expired time = ', token_time)
     if (token_time < (60 * 5 + 120)) :
       print('token has been expired')
       token = get_access_token(username, password)
@@ -121,11 +121,12 @@ def publish_to_fb_group(graph, group_list, token):
     print('===================================================================================================')
 
 def publish_to_fb_group_comment(graph, group_list, token):
-  article_pub_count = 0
+  global article_pub_count
   while(True):
     token_time = get_access_token_expired_time(token)
-    print('token expired time = ', token_time)
+    print(welcome_login_fb(graph), 'token expired time = ', token_time)
     if (token_time < (60 * 8 + 120)) :
+      print('token has been expired')
       token = get_access_token(username, password)
       graph = get_fb_graph_instance(token)
 
@@ -137,26 +138,36 @@ def publish_to_fb_group_comment(graph, group_list, token):
     group_name = group_list[0]['name']
     group_list.pop(0)
 
-    group_comments_id_0 = graph.get_object(group_id+"/feed")['data'][0]['id']
+    group_comments_id_list = list()
+    for idx in range(0,5):
+      group_comments_id = graph.get_object(group_id+"/feed")['data'][idx]['id']
+      group_comments_id_list.append(group_comments_id)
 
     fb_post_id = 0
     try:
-      art_id= randint(post_id_start, post_id_end)
-      art_link = 'http://www.dobee01.com/p/{}/'.format(art_id)
-      title = get_article_title(art_link)
-      message = title + '\n' + art_link 
-      fb_post_id = graph.put_object(parent_object=group_comments_id_0, connection_name='comments', message = message)
-      
-      message = '按個讚加入粉絲團支持我們，給我們個鼓厲\n https://www.facebook.com/dobee01/'
-      fb_post_id = graph.put_object(parent_object=group_comments_id_0, connection_name='comments', message = message)
-      print(article_pub_count ,current_time(), fb_post_id, ' publish_to ', group_id, group_name, art_link, title, ' group count = ', len(group_list))
-      article_pub_count += 1
-      rand_sleep_time(60 * 2, 60 * 5)
+      for group_comments_id in group_comments_id_list:
+        art_id= randint(post_id_start, post_id_end)
+        art_link = 'http://www.dobee01.com/p/{}/'.format(art_id)
+        title = get_article_title(art_link)
+        message = title + '\n' + art_link 
+        fb_post_id = graph.put_object(parent_object=group_comments_id, connection_name='comments', message = message)
+        
+        message = '按個讚加入粉絲團支持我們，給我們個鼓厲\n https://www.facebook.com/dobee01/'
+        fb_post_id = graph.put_object(parent_object=group_comments_id, connection_name='comments', message = message)
+        print('No.{}'.format(article_pub_count) ,current_time(), fb_post_id, ' publish_to ', group_id, group_name, art_link, title, ' group count = ', len(group_list))
+        rand_sleep_time(5, 10, 'No')
     except Exception as exc:
       print('publish_to_fb_group_comment(), exception = ', exc)
-      print(current_time(), fb_post_id, ' publish error ', group_id, group_name, art_link, ' group count = ', len(group_list))
-      sleep_time(5)
+      print('No.{}'.format(article_pub_count), current_time(), fb_post_id, ' publish error ', group_id, group_name, art_link, ' group count = ', len(group_list))
       pass
+
+    if (article_pub_count % 50 == 0):
+      rand_sleep_time(60*10, 60*15)
+    else:
+      rand_sleep_time(12, 24)
+    article_pub_count += 1
+    print('===================================================================================================')
+
 
 def welcome_login_fb(graph):
   me = graph.get_object('/me')
@@ -173,12 +184,12 @@ def get_article_title(url):
 
 
 
-username = 'tittanchang@gmail.com'
-password = 'Novia0829'
+username = 'wangcandy700120@gmail.com'
+password = ''
 
 # 2650 ~ 3279
 post_id_start = 10930
-post_id_end   = 10962
+post_id_end   = 10964
 
 reget_token = True
 reget_group_list = True
@@ -189,7 +200,6 @@ while(True):
   if (reget_token == True):
     token = get_access_token(username, password)
     graph = get_fb_graph_instance(token)
-    welcome_login_fb(graph)
     reget_token = False
 
 
