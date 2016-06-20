@@ -7,6 +7,7 @@ import requests
 import json
 import time
 import re
+import configparser
 from datetime import datetime, date, timedelta
 from bs4 import BeautifulSoup, Comment
 
@@ -75,10 +76,11 @@ def publish_to_fb_group(graph, group_list, token):
     token_time = get_access_token_expired_time(token)
     welcome_login_fb(graph)
     print('token expired time = ', token_time)
-    if (token_time < (60 * 5 + 120)) :
+    if (token_time < (60 * 5)) :
       print('token has been expired')
-      token = get_access_token(username, password)
-      graph = get_fb_graph_instance(token)
+      return 'ACCESS_TOKEN_TIME_EXPIRED'
+      # token = get_access_token(username, password)
+      # graph = get_fb_graph_instance(token)
 
     group_id = group_list[0]['id']
     group_name = group_list[0]['name']
@@ -129,8 +131,9 @@ def publish_to_fb_group_comment(graph, group_list, token):
     print('token expired time = ', token_time)
     if (token_time < (60 * 8 + 120)) :
       print('token has been expired')
-      token = get_access_token(username, password)
-      graph = get_fb_graph_instance(token)
+      return 'ACCESS_TOKEN_TIME_EXPIRED'
+      # token = get_access_token(username, password)
+      # graph = get_fb_graph_instance(token)
 
     if (len(group_list) == 0):
       print('facebook groups list has been empty\n')
@@ -184,14 +187,40 @@ def get_article_title(url):
   title = re.sub(r'[-, So, Funny, Easy]', '', soup.title.text)
   return title
 
+def get_fb_setting_info():
+  config = configparser.ConfigParser()
+  config.read('fb_setting_info.ini')
+  return config
+
+def get_account_info_list():
+  config = get_fb_setting_info()
+  account_list = list()
+  for k in config['ACCOUNT_INFO']:
+    tmp = [k, config['ACCOUNT_INFO'][k]] 
+    account_list.append(tmp)
+  return account_list
+
+def get_user_and_pass_from_list():
+  global account_list
+  global account_list_len
+  global account_idx
+  username = account_list[account_idx][0]
+  password = account_list[account_idx][1]
+  account_idx += 1
+  if (account_idx == account_list_len):
+    account_idx = 0
+  return username, password
 
 
-username = '8618306137054'
-password = ''
+config = get_fb_setting_info()
+
+account_list     = get_account_info_list()
+account_list_len = len(account_list)
+account_idx      = 0
 
 # 2650 ~ 3279
-post_id_start = 10960
-post_id_end   = 10990
+post_id_start = int(config['ARTICLE_ID']['start'])
+post_id_end   = int(config['ARTICLE_ID']['end'])
 
 reget_token = True
 reget_group_list = True
@@ -200,14 +229,15 @@ status = 0
 article_pub_count = 1
 while(True):
   if (reget_token == True):
+    username, password = get_user_and_pass_from_list()
     token = get_access_token(username, password)
     graph = get_fb_graph_instance(token)
     reget_token = False
 
-
   if (reget_group_list == True):
     token_time = get_access_token_expired_time(token)
     if (token_time <= 60):
+      username, password = get_user_and_pass_from_list()
       token = get_access_token(username, password)
       graph = get_fb_graph_instance(token)
     group_list = get_fb_random_groups(graph)
