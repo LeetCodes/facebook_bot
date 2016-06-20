@@ -73,7 +73,8 @@ def publish_to_fb_group(graph, group_list, token):
       return 'GROUP_LIST_EMPTY'
     
     token_time = get_access_token_expired_time(token)
-    print(welcome_login_fb(graph), 'token expired time = ', token_time)
+    welcome_login_fb(graph)
+    print('token expired time = ', token_time)
     if (token_time < (60 * 5 + 120)) :
       print('token has been expired')
       token = get_access_token(username, password)
@@ -114,7 +115,7 @@ def publish_to_fb_group(graph, group_list, token):
       pass
 
     if (article_pub_count % 10 == 0):
-      rand_sleep_time(60*23, 60*30)
+      rand_sleep_time(60*25, 60*30)
     else:
       rand_sleep_time(12, 24)
     article_pub_count += 1
@@ -124,7 +125,8 @@ def publish_to_fb_group_comment(graph, group_list, token):
   global article_pub_count
   while(True):
     token_time = get_access_token_expired_time(token)
-    print(welcome_login_fb(graph), 'token expired time = ', token_time)
+    welcome_login_fb(graph)
+    print('token expired time = ', token_time)
     if (token_time < (60 * 8 + 120)) :
       print('token has been expired')
       token = get_access_token(username, password)
@@ -184,12 +186,12 @@ def get_article_title(url):
 
 
 
-username = 'wangcandy700120@gmail.com'
+username = '8618306137054'
 password = ''
 
 # 2650 ~ 3279
-post_id_start = 10930
-post_id_end   = 10964
+post_id_start = 10960
+post_id_end   = 10990
 
 reget_token = True
 reget_group_list = True
