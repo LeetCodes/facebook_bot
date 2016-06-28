@@ -125,7 +125,7 @@ def strip_lines(string):
 
 
 username = 'tittan0829@gmail.com'
-password = '0228345105'
+password = ''
 
 reget_token = True
 reget_group_list = True
@@ -134,7 +134,8 @@ token = get_fb_page_token(username, password)
 graph = get_fb_graph_instance(token)
 welcome_login_fb(graph)
 
-search_list = get_fb_search_result_list(graph, '蘋果日報', "page")
+search_keywords_list = ['東森新聞', '蘋果日報', 'TVBS 新聞']
+search_list = get_fb_search_result_list(graph, search_keywords_list[2], "page")
 print(search_list[0])
 page_id = search_list[0]['id']
 feed_msg_no = 1
@@ -153,22 +154,35 @@ for feed in feed_list:
   try:
     args={'limit':'100'}
     feed_comment = graph.get_object(feed_msg_id + '/comments', **args)['data']
+
     feed_total_comment_count = len(feed_comment)
     print('total_comment_count =', feed_total_comment_count)
+    idx = 0
+    while(True):
+      like_count = feed_comment[idx]['like_count']
+      comment_msg = feed_comment[idx]['message']
+      if (like_count != 0):
+        feed_comment.pop(idx)
+        feed_total_comment_count -= 1
+      idx += 1
+      if(idx == feed_total_comment_count):
+        break
+
     if (feed_total_comment_count < 3):
       continue
 
-    if (feed_total_comment_count >= 10):
-      sample_count = int(feed_total_comment_count / 10)
+    if (feed_total_comment_count >= 50):
+      sample_count = int(feed_total_comment_count * 0.3)
     else:
-      sample_count = int(feed_total_comment_count / 3)
+      sample_count = int(feed_total_comment_count * 0.2)
 
     like_comment_id_list = sample(range(0, feed_total_comment_count), sample_count)
     for idx in like_comment_id_list:
-      feed_comment_author    = feed_comment[idx]['from']['name']
-      feed_comment_author_id = feed_comment[idx]['from']['id']
-      feed_comment_msg       = feed_comment[idx]['message'].replace('\n', '')[0:30]
-      feed_comment_id        = feed_comment[idx]['id']
+      feed_comment_author     = feed_comment[idx]['from']['name']
+      feed_comment_author_id  = feed_comment[idx]['from']['id']
+      feed_comment_msg        = feed_comment[idx]['message'].replace('\n', '')[0:30]
+      feed_comment_id         = feed_comment[idx]['id']
+      feed_comment_like_count = feed_comment[idx]['like_count']
       fb_like_status         = graph.put_object(parent_object=feed_comment_id, connection_name='likes')
       print('\t', '|- No.{} ({}, {}) | {} | {} '.format(idx, feed_comment_author_id, feed_comment_author, feed_comment_msg, feed_comment_id), 
                              '| push_likes_count =',push_likes_count)
