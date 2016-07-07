@@ -5,8 +5,25 @@ import fbconsole
 import requests
 import json
 import time
+import re
 from datetime import datetime, date, timedelta
+from random import shuffle, randint
+from bs4 import BeautifulSoup, Comment
 
+def sleep_time(seconds, count_down_msg = 'YES'):
+  pause_sec = seconds
+  while seconds >= 0:
+    if count_down_msg == 'YES':
+      print('pause %s seconds....   Count down = %04s' %(pause_sec, seconds), end = '\r')
+    time.sleep(1)
+    seconds = seconds - 1
+
+  if count_down_msg == 'YES':
+    print(end = '\n')
+
+def rand_sleep_time(rand_start, rand_end, count_down_msg = 'YES'):
+  rand_num = randint(rand_start, rand_end)
+  sleep_time(rand_num, count_down_msg)
 
 
 def get_access_token_expired_time(token):
@@ -38,31 +55,39 @@ def get_fb_page_graph_instance(username, password):
 def current_time():
   return '[' + (datetime.now()).strftime('%Y/%m/%d %H:%M:%S') + ']'
 
+def get_article_title(url):
+  r = requests.get(url)
+  soup = BeautifulSoup(r.text, 'lxml')
+  title = re.sub(r'[-, So, Funny, Easy]', '', soup.title.text)
+  return title
 
 
-username = 'tittan0829@gmail.com'
-password = 'Novia0829'
-art_start_no = 10300
-art_end_no   = 10370
+
+username = ''
+password = ''
+art_start_no = 11211
+art_end_no   = 11219
 
 page_token = get_fb_page_token(username, password)
 page_graph = facebook.GraphAPI(page_token)
 dobee01_id = '1020239824709036'
 
-for post_id in range(art_start_no, art_end_no):
+for post_id in range(art_start_no, art_end_no + 1):
   expired_time = get_access_token_expired_time(page_token)
   if (expired_time < (60 * 11)):
     print('Page Token is expired, prepare to reget page token\n')
     page_graph = get_fb_page_graph_instance(username, password)
 
-  art_link = 'http://www.dobee01.com/p/{}/'.format(post_id)
+  art_link = 'http://www.dobee01.com/p/{}/?r=fb_page'.format(post_id)
+  title    = get_article_title(art_link)
   try:
-    post_id = page_graph.put_object(parent_object=dobee01_id, connection_name='feed', link=art_link)
-    print(current_time(), art_link, 'has been publish to dobee01 page, prepare sleep 300 seconds, post_id = ', post_id)
-    time.sleep(600)
-  except:
+    post_id = page_graph.put_object(parent_object=dobee01_id, connection_name='feed', link=art_link, message=title)
+    print(current_time(), title, art_link, 'has been publish to dobee01 page, prepare sleep, post_id = ', post_id)
+    sleep_time(600)
+  except Exception as exc:
+    print(exc)
     print(current_time(), art_link, 'has somthing wrong to publish dobee01 facebook page\n')
-    time.sleep(5)
+    sleep_time(3)
     pass
 
 

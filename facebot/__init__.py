@@ -13,7 +13,7 @@ from facebot.message import (
 from facebot.sticker import get_stickers
 
 logging.basicConfig()
-log = logging.getLogger('facebook')
+log = logging.getLogger('| facebook |')
 log.setLevel(logging.WARN)
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 5.1; rv:31.0) Gecko/20100101 Firefox/31.0'
@@ -62,6 +62,10 @@ class Facebook:
         res = self.session.post(LOGIN_URL, data=datas, cookies=cookies2)
         # res = self.session.post(LOGIN_URL, data=datas)
         # get user id
+        if u'你使用的是舊密碼' in res.text:
+          log.warning('%s\'s password was worng', email)
+          exit()
+        
         self.user_id = self._get_user_id(res.content)
         log.debug('user_id: %s', self.user_id)
 
@@ -102,10 +106,15 @@ class Facebook:
         return fields
 
     def _get_user_id(self, content):
-        root = etree.HTML(content)
-        user_id_xpath = root.xpath('//input[@name="target"]')[0]
-        user_id = user_id_xpath.xpath('@value')[0]
-        return user_id
+        try:
+          root = etree.HTML(content)
+          user_id_xpath = root.xpath('//input[@name="target"]')[0]
+          user_id = user_id_xpath.xpath('@value')[0]
+          return user_id
+        except Exception as exc:
+          print(exc)
+          print(str(content, 'utf-8'))
+
         # '''Find user id in the facebook page.'''
         # m = re.search('\"USER_ID\":\"(\d+)\"', content)
         # if m:
