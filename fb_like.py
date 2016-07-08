@@ -124,8 +124,8 @@ def strip_lines(string):
   return tmp_str
 
 
-username = 'tittan0829@gmail.com'
-password = ''
+username = input('Input Username:')
+password = input('Input Password:')
 
 reget_token = True
 reget_group_list = True
@@ -135,7 +135,7 @@ graph = get_fb_graph_instance(token)
 welcome_login_fb(graph)
 
 search_keywords_list = ['東森新聞', '蘋果日報', 'TVBS 新聞']
-search_list = get_fb_search_result_list(graph, search_keywords_list[2], "page")
+search_list = get_fb_search_result_list(graph, search_keywords_list[0], "page")
 print(search_list[0])
 page_id = search_list[0]['id']
 feed_msg_no = 1
@@ -154,21 +154,11 @@ for feed in feed_list:
   try:
     args={'limit':'100'}
     feed_comment = graph.get_object(feed_msg_id + '/comments', **args)['data']
-
+    # Add the element if like_count = 0
+    feed_comment = [feed for feed in feed_comment if feed['like_count'] == 0]
     feed_total_comment_count = len(feed_comment)
-    print('total_comment_count =', feed_total_comment_count)
-    idx = 0
-    while(True):
-      like_count = feed_comment[idx]['like_count']
-      comment_msg = feed_comment[idx]['message']
-      if (like_count != 0):
-        feed_comment.pop(idx)
-        feed_total_comment_count -= 1
-      idx += 1
-      if(idx == feed_total_comment_count):
-        break
 
-    if (feed_total_comment_count < 3):
+    if (feed_total_comment_count <= 4):
       continue
 
     if (feed_total_comment_count >= 50):
@@ -176,6 +166,7 @@ for feed in feed_list:
     else:
       sample_count = int(feed_total_comment_count * 0.2)
 
+    print('total_comment_count =', feed_total_comment_count, ' | prepare to like count =', sample_count)
     like_comment_id_list = sample(range(0, feed_total_comment_count), sample_count)
     for idx in like_comment_id_list:
       feed_comment_author     = feed_comment[idx]['from']['name']
