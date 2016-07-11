@@ -66,6 +66,9 @@ class Facebook:
           log.warning('%s\'s password was worng', email)
           exit()
         
+        if u'無須輸入密碼，只要點擊大頭貼照即可在手機上登入' in res.text:
+          self._login(email, password)
+        
         self.user_id = self._get_user_id(res.content)
         log.debug('user_id: %s', self.user_id)
 
@@ -90,6 +93,7 @@ class Facebook:
 
         # can't find form tag
         if not form:
+            log.warn(content)
             raise LoginError('No form datas')
 
         fields = {}

@@ -88,7 +88,7 @@ def get_fb_search_result_list(graph, query_word, query_type):
   # ad_*
   # 不同搜尋選項的集合，可用於找出目標設定選項。
   # 請參閱目標設定選項文件
-  search_result = graph.request('/search?', {'q':query_word, 'type':query_type, 'limit':20})
+  search_result = graph.request('/search?', {'q':query_word, 'type':query_type, 'limit':25})
   search_list = list(fbconsole.iter_pages(search_result))
   return search_list
 
@@ -123,9 +123,30 @@ def strip_lines(string):
     tmp_str.append(line)
   return tmp_str
 
+def get_search_keyword_from_list(keyword_list):
+  list_len = len(keyword_list)
+  idx = 0
+  for keyword in keyword_list:
+    print('No.{} - {}'.format(idx, keyword))
+    idx += 1
+
+  while (True):
+    select = input('input the number which you selected or \'q\' to exit program : ')
+    if (select == 'q'):
+      exit()
+    else:
+      select_no = int(select)
+      if (select_no < 0) or (select_no >= list_len):
+        continue
+      else:
+        print('you selected the %s' %(keyword_list[select_no]))
+        return keyword_list[select_no]
+
+
 
 username = input('Input Username:')
 password = input('Input Password:')
+
 
 reget_token = True
 reget_group_list = True
@@ -134,13 +155,20 @@ token = get_fb_page_token(username, password)
 graph = get_fb_graph_instance(token)
 welcome_login_fb(graph)
 
-search_keywords_list = ['東森新聞', '蘋果日報', 'TVBS 新聞']
-search_list = get_fb_search_result_list(graph, search_keywords_list[0], "page")
+search_keywords_list = [
+    '東森新聞', 
+    '蘋果日報', 
+    'TVBS 新聞',
+
+
+]
+search_keyword = get_search_keyword_from_list(search_keywords_list)
+search_list = get_fb_search_result_list(graph, search_keyword, "page")
 print(search_list[0])
 page_id = search_list[0]['id']
 feed_msg_no = 1
 push_likes_count = 1
-args={'limit':'25'}
+args={'limit':'40'}
 feed_list = graph.get_object(page_id+'/feed', **args)['data']
 for feed in feed_list:
   try:
