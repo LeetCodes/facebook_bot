@@ -44,11 +44,35 @@ def get_fb_page_token(username, password):
   token = get_access_token(username, password)
   graph = facebook.GraphAPI(access_token=token, version='2.3')
   accounts = graph.get_object('/me/accounts')
-  page_token = accounts['data'][0]['access_token']
-  return page_token
+
+  fb_page_count = len(accounts['data'])
+  if fb_page_count == 1:
+    page_token = accounts['data'][0]['access_token']
+    page_id    = accounts['data'][0]['id']
+    page_name  = accounts['data'][0]['name']
+  else:
+    number = 1
+    for page_info in accounts['data']:
+      print('No.{} {}'.format(number, page_info['name']))
+      number += 1
+
+    while(True):
+      choice_num = input('input the number (input \'q\' to quit): ')
+      if (choice_num == 'q'):
+        raise NameError('quit select category')
+      choice_num = int(choice_num)
+      if (choice_num < 0) or (choice_num > category_count):
+        print('please input a correct category number')
+      else:
+        choice_num = choice_num - 1
+        page_token = accounts['data'][choice_num]['access_token']
+        page_id    = accounts['data'][choice_num]['id']
+        page_name  = accounts['data'][choice_num]['name']
+        break
+  return page_id, page_token
 
 def get_fb_page_graph_instance(username, password):
-  page_token = get_fb_page_token(username, password)
+  page_id, page_token = get_fb_page_token(username, password)
   page_graph = facebook.GraphAPI(page_token)
   return page_graph
 
@@ -63,25 +87,32 @@ def get_article_title(url):
 
 
 
-username = ''
-password = ''
-art_start_no = 11211
-art_end_no   = 11219
+username = input('Input Username:')
+password = input('Input Password:')
 
-page_token = get_fb_page_token(username, password)
+art_start_no = 11257
+art_end_no   = 11271
+
+page_id, page_token = get_fb_page_token(username, password)
 page_graph = facebook.GraphAPI(page_token)
-dobee01_id = '1020239824709036'
+# dobee01_id = '1020239824709036'
 
 for post_id in range(art_start_no, art_end_no + 1):
   expired_time = get_access_token_expired_time(page_token)
-  if (expired_time < (60 * 11)):
+  if (expired_time < (60)):
     print('Page Token is expired, prepare to reget page token\n')
-    page_graph = get_fb_page_graph_instance(username, password)
+    while(True):
+      try:
+        page_graph = get_fb_page_graph_instance(username, password)
+        break
+      except:
+        sleep_time(10)
+        continue
 
   art_link = 'http://www.dobee01.com/p/{}/?r=fb_page'.format(post_id)
   title    = get_article_title(art_link)
   try:
-    post_id = page_graph.put_object(parent_object=dobee01_id, connection_name='feed', link=art_link, message=title)
+    post_id = page_graph.put_object(parent_object = page_id, connection_name='feed', link=art_link, message=title)
     print(current_time(), title, art_link, 'has been publish to dobee01 page, prepare sleep, post_id = ', post_id)
     sleep_time(600)
   except Exception as exc:
