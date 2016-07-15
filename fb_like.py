@@ -143,9 +143,32 @@ def get_search_keyword_from_list(keyword_list):
         return keyword_list[select_no]
 
 
+def get_feed_list(graph, page_id, feed_limit):
+  feed_list = graph.get_object(page_id+'/feed')
+  tmp_list = []
+  tmp_count = 0
+  for feed in fbconsole.iter_pages(feed_list):
+    tmp_list.append(feed)
+    tmp_count += 1
+    if (tmp_count > feed_limit):
+      break
+  return tmp_list
 
-username = input('Input Username:')
-password = input('Input Password:')
+def get_comment_list(graph, feed_msg_id, comment_limit):
+  feed_comment_list = graph.get_object(feed_msg_id + '/comments')
+  tmp_list = []
+  tmp_count = 0
+  for comment in fbconsole.iter_pages(feed_comment_list):
+    tmp_list.append(comment)
+    tmp_count += 1
+    if (tmp_count > comment_limit):
+      break
+  return tmp_list
+
+
+# username = input('Input Username:')
+# password = input('Input Password:')
+
 
 
 reget_token = True
@@ -159,29 +182,35 @@ search_keywords_list = [
     '東森新聞', 
     '蘋果日報', 
     'TVBS 新聞',
+    '爆料公社',
 
 
 ]
 search_keyword = get_search_keyword_from_list(search_keywords_list)
 search_list = get_fb_search_result_list(graph, search_keyword, "page")
-print(search_list[0])
-page_id = search_list[0]['id']
+
+for page in search_list:
+  page_name = page['name']
+  if page_name == search_keyword:
+    page_id = page['id']
+    print(page)
+    break;
+
 feed_msg_no = 1
 push_likes_count = 1
-args={'limit':'40'}
-feed_list = graph.get_object(page_id+'/feed', **args)['data']
+
+feed_list = get_feed_list(graph, page_id, 50)
 for feed in feed_list:
   try:
     feed_msg = feed['message'].replace('\n', '')[0:30]
     feed_msg_id = feed['id']
-    print('No.{} | ({} | {})'.format(feed_msg_no, feed_msg,feed_msg_id))
+    print('{} | No.{} | ({} | {})'.format(current_time(), feed_msg_no, feed_msg,feed_msg_id))
     feed_msg_no += 1
   except:
     continue
 
   try:
-    args={'limit':'100'}
-    feed_comment = graph.get_object(feed_msg_id + '/comments', **args)['data']
+    feed_comment = get_comment_list(graph, feed_msg_id, 100) 
     # Add the element if like_count = 0
     feed_comment = [feed for feed in feed_comment if feed['like_count'] == 0]
     feed_total_comment_count = len(feed_comment)
@@ -203,7 +232,7 @@ for feed in feed_list:
       feed_comment_id         = feed_comment[idx]['id']
       feed_comment_like_count = feed_comment[idx]['like_count']
       fb_like_status         = graph.put_object(parent_object=feed_comment_id, connection_name='likes')
-      print('\t', '|- No.{} ({}, {}) | {} | {} '.format(idx, feed_comment_author_id, feed_comment_author, feed_comment_msg, feed_comment_id), 
+      print('\t', '{} |- No.{} ({}, {}) | {} | {} '.format(current_time(), idx, feed_comment_author_id, feed_comment_author, feed_comment_msg, feed_comment_id), 
                              '| push_likes_count =',push_likes_count)
       push_likes_count += 1
       rand_sleep_time(3, 8, 'No')

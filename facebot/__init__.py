@@ -50,33 +50,38 @@ class Facebook:
             raise LoginError('Status code is {}'.format(res.status_code))
 
         # get login form and add email and password fields
-        datas = self._get_login_form(res.content)
-        datas['email'] = email
-        datas['pass'] = password
-        cookies2 = {
-                   '_js_datr': self._get_reg_instance(),
-                   '_js_reg_fb_ref': 'https%3A%2F%2Fwww.facebook.com%2F',
-                   '_js_reg_fb_gate': 'https%3A%2F%2Fwww.facebook.com%2F'
-                   }
-        # call login API with login form
-        res = self.session.post(LOGIN_URL, data=datas, cookies=cookies2)
-        # res = self.session.post(LOGIN_URL, data=datas)
-        # get user id
-        if u'你使用的是舊密碼' in res.text:
-          log.warning('%s\'s password was worng', email)
-          exit()
-        
-        if u'無須輸入密碼，只要點擊大頭貼照即可在手機上登入' in res.text:
-          self._login(email, password)
-        
-        self.user_id = self._get_user_id(res.content)
-        log.debug('user_id: %s', self.user_id)
+        try:
+          datas = self._get_login_form(res.content)
+          datas['email'] = email
+          datas['pass'] = password
+          cookies2 = {
+                     '_js_datr': self._get_reg_instance(),
+                     '_js_reg_fb_ref': 'https%3A%2F%2Fwww.facebook.com%2F',
+                     '_js_reg_fb_gate': 'https%3A%2F%2Fwww.facebook.com%2F'
+                     }
+          # call login API with login form
+          res = self.session.post(LOGIN_URL, data=datas, cookies=cookies2)
+          # res = self.session.post(LOGIN_URL, data=datas)
+          # get user id
+          if u'你使用的是舊密碼' in res.text:
+            log.warning('%s\'s password was worng', email)
+            exit()
+          
+          if u'無須輸入密碼，只要點擊大頭貼照即可在手機上登入' in res.text:
+            self._login(email, password)
+          
+          self.user_id = self._get_user_id(res.content)
+          log.debug('user_id: %s', self.user_id)
 
-        # get facebook dtsg
-        # self.dtsg = self._get_dtsg(res.text)
-        # log.debug('dtsg: %s', self.dtsg)
+          # get facebook dtsg
+          # self.dtsg = self._get_dtsg(res.text)
+          # log.debug('dtsg: %s', self.dtsg)
 
-        log.info('welcome %s', self.user_id)
+          log.info('welcome %s', self.user_id)
+        except:
+          self.user_id = self._get_user_id(res.content)
+          log.debug('user_id: %s', self.user_id)
+          log.info('welcome %s', self.user_id)
 
     def _get_reg_instance(self):
         '''Fetch "javascript-generated" cookie'''
@@ -93,7 +98,7 @@ class Facebook:
 
         # can't find form tag
         if not form:
-            log.warn(content)
+            log.warn(str(content, 'utf-8'))
             raise LoginError('No form datas')
 
         fields = {}
